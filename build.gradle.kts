@@ -46,7 +46,11 @@ allOpen {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		if (project.hasProperty("excludeTags")) {
+			excludeTags(project.property("excludeTags").toString())
+		}
+	}
 	testLogging {
 		showStandardStreams = true
 		events("passed", "failed", "skipped")

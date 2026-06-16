@@ -4,9 +4,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.transaction.annotation.Transactional
+import org.junit.jupiter.api.Tag
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
+@Tag("integration")
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
