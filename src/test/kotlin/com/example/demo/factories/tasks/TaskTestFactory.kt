@@ -7,7 +7,7 @@ import com.example.demo.models.tasks.TaskStatus
 import org.openapitools.jackson.nullable.JsonNullable
 import java.time.Instant
 
-object TaskTestDataFactory {
+object TaskTestFactory {
 
     val postTaskDto1 = PostTaskDto(title = "Task One", description = "First task")
     val postTaskDto2 = PostTaskDto(title = "Task Two", description = "Second task")

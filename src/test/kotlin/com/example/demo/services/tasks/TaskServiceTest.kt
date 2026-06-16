@@ -1,19 +1,27 @@
 package com.example.demo.services.tasks
 
-import com.example.demo.factories.tasks.TaskTestDataFactory.patchTaskTitle
-import com.example.demo.factories.tasks.TaskTestDataFactory.patchTaskStatusToDone
-import com.example.demo.factories.tasks.TaskTestDataFactory.patchTaskStatusToOpen
-import com.example.demo.factories.tasks.TaskTestDataFactory.postTaskDto1
-import com.example.demo.factories.tasks.TaskTestDataFactory.postTaskDto2
+import com.example.demo.factories.tasks.TaskTestFactory.patchTaskStatusToDone
+import com.example.demo.factories.tasks.TaskTestFactory.patchTaskStatusToOpen
+import com.example.demo.factories.tasks.TaskTestFactory.patchTaskTitle
+import com.example.demo.factories.tasks.TaskTestFactory.postTaskDto1
+import com.example.demo.factories.tasks.TaskTestFactory.postTaskDto2
 import com.example.demo.models.tasks.TaskStatus
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 abstract class TaskServiceTest {
 
-    protected abstract val taskService: TaskService
+    protected abstract fun createTaskService(): TaskService
+
+    lateinit var taskService: TaskService
+
+    @BeforeEach
+    fun setUp() {
+        taskService = createTaskService()
+    }
 
     @Test
     fun `postTask creates and returns task with generated id`() {

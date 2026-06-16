@@ -1,9 +1,9 @@
 package com.example.demo.mappers
 
-import com.example.demo.factories.tasks.TaskTestDataFactory.postTaskDto1
-import com.example.demo.factories.tasks.TaskTestDataFactory.taskEntityStatusOpen
-import com.example.demo.factories.tasks.TaskTestDataFactory.taskEntityStatusDone
-import com.example.demo.factories.tasks.TaskTestDataFactory.taskEntityWithNoID
+import com.example.demo.factories.tasks.TaskTestFactory.postTaskDto1
+import com.example.demo.factories.tasks.TaskTestFactory.taskEntityStatusDone
+import com.example.demo.factories.tasks.TaskTestFactory.taskEntityStatusOpen
+import com.example.demo.factories.tasks.TaskTestFactory.taskEntityWithNoID
 import com.example.demo.models.tasks.TaskStatus
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
