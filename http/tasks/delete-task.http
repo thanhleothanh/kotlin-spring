@@ -1,0 +1,2 @@
+DELETE {{baseUrl}}/api/tasks/3
+Accept: application/json

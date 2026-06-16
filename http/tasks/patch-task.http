@@ -1,0 +1,6 @@
+PATCH {{baseUrl}}/api/tasks/1
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}

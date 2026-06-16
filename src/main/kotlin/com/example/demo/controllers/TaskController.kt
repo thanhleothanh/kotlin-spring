@@ -1,15 +1,12 @@
 package com.example.demo.controllers
 
-import com.example.demo.models.common.ResponseWrapper
-import com.example.demo.models.tasks.CreateTaskDto
+import com.example.demo.models.tasks.PatchTaskDto
+import com.example.demo.models.tasks.PostTaskDto
 import com.example.demo.models.tasks.TaskDto
 import com.example.demo.services.tasks.TaskService
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -18,14 +15,26 @@ class TaskController(
 ) {
 
     @GetMapping
-    fun getTasks(): ResponseEntity<ResponseWrapper<List<TaskDto>>> {
-        val result = taskService.getTasks()
-        return ResponseEntity.ok(ResponseWrapper.ok(result))
+    @ResponseStatus(HttpStatus.OK)
+    fun getTasks(): List<TaskDto> {
+        return taskService.getTasks()
     }
 
     @PostMapping
-    fun postTask(@RequestBody request: CreateTaskDto): ResponseEntity<ResponseWrapper<*>> {
-        taskService.createTask(request)
-        return ResponseEntity.ok(ResponseWrapper.ok(null))
+    @ResponseStatus(HttpStatus.CREATED)
+    fun postTask(@Valid @RequestBody request: PostTaskDto): TaskDto {
+        return taskService.postTask(request)
+    }
+
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    fun patchTask(@PathVariable id: Long, @Valid @RequestBody request: PatchTaskDto): TaskDto {
+        return taskService.patchTask(id, request)
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteTask(@PathVariable id: Long) {
+        taskService.deleteTask(id)
     }
 }
