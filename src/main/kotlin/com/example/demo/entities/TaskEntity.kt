@@ -9,6 +9,19 @@ import java.time.Instant
 @Entity
 @Table(name = "tasks")
 class TaskEntity(
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null,
+
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    var createdAt: Instant = Instant.now(),
+
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    var updatedAt: Instant = Instant.now(),
+
     @Column(name = "title")
     var title: String,
 
@@ -20,17 +33,5 @@ class TaskEntity(
     var description: String?,
 
     @Column(name = "completed_at")
-    var completedAt: Instant?,
-) {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null
-
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    val createdAt: Instant = Instant.now()
-
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    val updatedAt: Instant = Instant.now()
-}
+    var completedAt: Instant? = null,
+)
