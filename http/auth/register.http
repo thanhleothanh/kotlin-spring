@@ -1,3 +1,4 @@
+### @name register
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 

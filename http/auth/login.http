@@ -1,3 +1,4 @@
+### @name login
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -5,3 +6,7 @@ Content-Type: application/json
   "username": "testuser",
   "password": "password123"
 }
+
+> {%
+    client.global.set("token", response.body.token);
+%}

@@ -1,3 +1,4 @@
+### @name deleteTask
 DELETE {{baseUrl}}/api/tasks/3
 Accept: application/json
 Authorization: Bearer {{token}}
