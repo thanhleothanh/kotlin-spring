@@ -4,6 +4,7 @@ import com.example.demo.configurations.ControllerIntegrationTest
 import com.example.demo.models.tasks.TaskStatus
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
+import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,17 +13,46 @@ import org.springframework.boot.test.web.server.LocalServerPort
 @ControllerIntegrationTest
 class TaskControllerTest {
 
+    companion object {
+        private val AUTH_REQUEST = mapOf("username" to "testUser1", "password" to "password123")
+    }
+
     @LocalServerPort
     private var port: Int = 0
+
+    private lateinit var authToken: String
 
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
+        authToken = registerAndLogin()
+    }
+
+    private fun registerAndLogin(): String {
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body(AUTH_REQUEST)
+            .post("/api/auth/register")
+
+        val response = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body(AUTH_REQUEST)
+            .post("/api/auth/login")
+            .then()
+            .statusCode(200)
+            .extract()
+
+        return response.path<String>("token")
+    }
+
+    private fun authenticated(): RequestSpecification {
+        return RestAssured.given()
+            .header("Authorization", "Bearer $authToken")
     }
 
     @Test
     fun `getTasks returns empty list when no tasks exist`() {
-        RestAssured.given()
+        authenticated()
             .`when`()
             .get("/api/tasks")
             .then()
@@ -32,7 +62,7 @@ class TaskControllerTest {
 
     @Test
     fun `postTask creates and returns the task with 201`() {
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("title" to "Task One", "description" to "First task"))
             .`when`()
@@ -48,7 +78,7 @@ class TaskControllerTest {
 
     @Test
     fun `postTask with blank title returns 400`() {
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("title" to ""))
             .`when`()
@@ -62,17 +92,17 @@ class TaskControllerTest {
         val task1 = mapOf("title" to "Task One", "description" to "First task")
         val task2 = mapOf("title" to "Task Two", "description" to "Second task")
 
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(task1)
             .post("/api/tasks")
 
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(task2)
             .post("/api/tasks")
 
-        RestAssured.given()
+        authenticated()
             .`when`()
             .get("/api/tasks")
             .then()
@@ -85,7 +115,7 @@ class TaskControllerTest {
     fun `patchTask updates title`() {
         val id = extractCreatedTaskId()
 
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("title" to "Updated Title"))
             .`when`()
@@ -100,7 +130,7 @@ class TaskControllerTest {
     fun `patchTask status transition to DONE sets completedAt`() {
         val id = extractCreatedTaskId()
 
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("status" to "DONE"))
             .`when`()
@@ -115,12 +145,12 @@ class TaskControllerTest {
     fun `patchTask status transition away from DONE clears completedAt`() {
         val id = extractCreatedTaskId()
 
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("status" to "DONE"))
             .patch("/api/tasks/{id}", id)
 
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("status" to "OPEN"))
             .`when`()
@@ -133,7 +163,7 @@ class TaskControllerTest {
 
     @Test
     fun `patchTask with non-existent id returns 404`() {
-        RestAssured.given()
+        authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("title" to "Updated"))
             .`when`()
@@ -146,13 +176,13 @@ class TaskControllerTest {
     fun `deleteTask removes existing task`() {
         val id = extractCreatedTaskId()
 
-        RestAssured.given()
+        authenticated()
             .`when`()
             .delete("/api/tasks/{id}", id)
             .then()
             .statusCode(204)
 
-        RestAssured.given()
+        authenticated()
             .`when`()
             .get("/api/tasks")
             .then()
@@ -161,15 +191,24 @@ class TaskControllerTest {
 
     @Test
     fun `deleteTask with non-existent id returns 404`() {
-        RestAssured.given()
+        authenticated()
             .`when`()
             .delete("/api/tasks/{id}", 99999)
             .then()
             .statusCode(404)
     }
 
+    @Test
+    fun `unauthenticated request returns 401`() {
+        RestAssured.given()
+            .`when`()
+            .get("/api/tasks")
+            .then()
+            .statusCode(401)
+    }
+
     private fun extractCreatedTaskId(): Long {
-        return RestAssured.given()
+        return authenticated()
             .contentType(ContentType.JSON)
             .body(mapOf("title" to "Task One", "description" to "First task"))
             .post("/api/tasks")

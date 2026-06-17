@@ -1,5 +1,6 @@
 package com.example.demo.mappers
 
+import com.example.demo.factories.auth.UserTestFactory.userEntity1
 import com.example.demo.factories.tasks.TaskTestFactory.postTaskDto1
 import com.example.demo.factories.tasks.TaskTestFactory.taskEntityStatusDone
 import com.example.demo.factories.tasks.TaskTestFactory.taskEntityStatusOpen
@@ -44,7 +45,7 @@ class TaskMapperTest {
 
     @Test
     fun `toEntity maps PostTaskDto correctly`() {
-        val entity = TaskMapper.toEntity(postTaskDto1)
+        val entity = TaskMapper.toEntity(postTaskDto1, userEntity1)
 
         assertNull(entity.id)
         assertEquals(postTaskDto1.title, entity.title)

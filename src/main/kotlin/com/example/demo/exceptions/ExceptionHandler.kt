@@ -33,6 +33,12 @@ class ExceptionHandler {
         return ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.message)
     }
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleIllegalArgument(ex: IllegalArgumentException): ErrorResponse {
+        return ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.message)
+    }
+
     @ExceptionHandler(Exception::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handleAll(ex: Exception): ErrorResponse {

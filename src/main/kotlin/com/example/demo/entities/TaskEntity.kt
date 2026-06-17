@@ -34,4 +34,8 @@ class TaskEntity(
 
     @Column(name = "completed_at")
     var completedAt: Instant? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    var user: UserEntity,
 )

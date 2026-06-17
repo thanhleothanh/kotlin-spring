@@ -12,8 +12,12 @@ import java.util.concurrent.atomic.AtomicLong
 
 class InMemoryTaskServiceImpl : TaskService {
 
-    private val tasks = ConcurrentHashMap<Long, InMemoryTask>()
-    private val idCounter = AtomicLong(0)
+    private data class UserTasks(
+        val tasks: MutableMap<Long, InMemoryTask> = ConcurrentHashMap(),
+        val idCounter: AtomicLong = AtomicLong(0),
+    )
+
+    private val userTasks = ConcurrentHashMap<Long, UserTasks>()
 
     private data class InMemoryTask(
         var title: String,
@@ -22,26 +26,29 @@ class InMemoryTaskServiceImpl : TaskService {
         var completedAt: Instant?,
     )
 
-    override fun getTasks(): List<TaskDto> {
-        return tasks.entries
+    override fun getTasks(userId: Long): List<TaskDto> {
+        val userStore = userTasks[userId] ?: return emptyList()
+        return userStore.tasks.entries
             .sortedBy { it.key }
             .map { it.value.toDto(it.key) }
     }
 
-    override fun postTask(request: PostTaskDto): TaskDto {
-        val id = idCounter.incrementAndGet()
+    override fun postTask(userId: Long, request: PostTaskDto): TaskDto {
+        val userStore = userTasks.getOrPut(userId) { UserTasks() }
+        val id = userStore.idCounter.incrementAndGet()
         val task = InMemoryTask(
             title = request.title,
             description = request.description,
             status = request.status,
             completedAt = null,
         )
-        tasks[id] = task
+        userStore.tasks[id] = task
         return task.toDto(id)
     }
 
-    override fun patchTask(id: Long, request: PatchTaskDto): TaskDto {
-        val task = tasks[id] ?: throw EntityNotFoundException("Task not found with id $id")
+    override fun patchTask(userId: Long, id: Long, request: PatchTaskDto): TaskDto {
+        val userStore = userTasks[userId] ?: throw EntityNotFoundException("Task not found with id $id")
+        val task = userStore.tasks[id] ?: throw EntityNotFoundException("Task not found with id $id")
 
         request.title.ifPresent { task.title = it }
         request.description.ifPresent { task.description = it }
@@ -58,8 +65,9 @@ class InMemoryTaskServiceImpl : TaskService {
         return task.toDto(id)
     }
 
-    override fun deleteTask(id: Long) {
-        if (tasks.remove(id) == null) {
+    override fun deleteTask(userId: Long, id: Long) {
+        val userStore = userTasks[userId] ?: throw EntityNotFoundException("Task not found with id $id")
+        if (userStore.tasks.remove(id) == null) {
             throw EntityNotFoundException("Task not found with id $id")
         }
     }

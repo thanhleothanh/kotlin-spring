@@ -1,5 +1,6 @@
 POST {{baseUrl}}/api/tasks
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
   "title": "Buy groceries 3",

@@ -1,2 +1,3 @@
 GET {{baseUrl}}/api/tasks
 Accept: application/json
+Authorization: Bearer {{token}}

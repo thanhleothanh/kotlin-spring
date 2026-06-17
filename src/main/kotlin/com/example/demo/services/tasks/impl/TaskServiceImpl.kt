@@ -6,6 +6,7 @@ import com.example.demo.models.tasks.PatchTaskDto
 import com.example.demo.models.tasks.PostTaskDto
 import com.example.demo.models.tasks.TaskDto
 import com.example.demo.models.tasks.TaskStatus
+import com.example.demo.repositories.UserRepository
 import com.example.demo.repositories.tasks.TaskRepository
 import com.example.demo.services.tasks.TaskService
 import jakarta.persistence.EntityNotFoundException
@@ -16,27 +17,29 @@ import java.time.Instant
 @Service
 @Transactional
 class TaskServiceImpl(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val userRepository: UserRepository,
 ) : TaskService {
-    override fun getTasks(): List<TaskDto> {
-        return taskRepository.findAll()
+
+    override fun getTasks(userId: Long): List<TaskDto> {
+        return taskRepository.findAllByUserId(userId)
             .map { TaskMapper.toDto(it) }
-            .toList()
     }
 
-    override fun postTask(request: PostTaskDto): TaskDto {
-        val entity = TaskMapper.toEntity(request)
+    override fun postTask(userId: Long, request: PostTaskDto): TaskDto {
+        val user = userRepository.getReferenceById(userId)
+        val entity = TaskMapper.toEntity(request, user)
         return TaskMapper.toDto(taskRepository.save(entity))
     }
 
-    override fun patchTask(id: Long, request: PatchTaskDto): TaskDto {
-        val entity = getTaskById(id)
+    override fun patchTask(userId: Long, id: Long, request: PatchTaskDto): TaskDto {
+        val entity = getTaskByIdAndUser(id, userId)
         applyPatch(entity, request)
         return TaskMapper.toDto(taskRepository.save(entity))
     }
 
-    override fun deleteTask(id: Long) {
-        val entity = getTaskById(id)
+    override fun deleteTask(userId: Long, id: Long) {
+        val entity = getTaskByIdAndUser(id, userId)
         taskRepository.delete(entity)
     }
 
@@ -60,8 +63,8 @@ class TaskServiceImpl(
         }
     }
 
-    private fun getTaskById(id: Long): TaskEntity {
-        return taskRepository.findById(id)
-            .orElseThrow { EntityNotFoundException("Task not found with id $id") }
+    private fun getTaskByIdAndUser(id: Long, userId: Long): TaskEntity {
+        return taskRepository.findByIdAndUserId(id, userId)
+            ?: throw EntityNotFoundException("Task not found with id $id")
     }
 }

@@ -1,9 +1,9 @@
 package com.example.demo.mappers
 
 import com.example.demo.entities.TaskEntity
+import com.example.demo.entities.UserEntity
 import com.example.demo.models.tasks.PostTaskDto
 import com.example.demo.models.tasks.TaskDto
-import com.example.demo.models.tasks.TaskStatus
 
 object TaskMapper {
 
@@ -17,12 +17,13 @@ object TaskMapper {
         )
     }
 
-    fun toEntity(request: PostTaskDto): TaskEntity {
+    fun toEntity(request: PostTaskDto, user: UserEntity): TaskEntity {
         return TaskEntity(
             title = request.title,
             status = request.status,
             description = request.description,
-            completedAt = null
+            completedAt = null,
+            user = user,
         )
     }
 }
