@@ -1,9 +1,6 @@
 package com.example.demo.services.tasks.impl
 
-import com.example.demo.models.tasks.PatchTaskDto
-import com.example.demo.models.tasks.PostTaskDto
-import com.example.demo.models.tasks.TaskDto
-import com.example.demo.models.tasks.TaskStatus
+import com.example.demo.models.tasks.*
 import com.example.demo.services.tasks.TaskService
 import jakarta.persistence.EntityNotFoundException
 import java.time.Instant
@@ -20,6 +17,7 @@ class InMemoryTaskServiceImpl : TaskService {
     private val userTasks = ConcurrentHashMap<Long, UserTasks>()
 
     private data class InMemoryTask(
+        val createdAt: Instant,
         var title: String,
         var description: String?,
         var status: TaskStatus,
@@ -37,6 +35,7 @@ class InMemoryTaskServiceImpl : TaskService {
         val userStore = userTasks.getOrPut(userId) { UserTasks() }
         val id = userStore.idCounter.incrementAndGet()
         val task = InMemoryTask(
+            createdAt = Instant.now(),
             title = request.title,
             description = request.description,
             status = request.status,
@@ -70,6 +69,25 @@ class InMemoryTaskServiceImpl : TaskService {
         if (userStore.tasks.remove(id) == null) {
             throw EntityNotFoundException("Task not found with id $id")
         }
+    }
+
+    override suspend fun getTaskStats(userId: Long): TaskStatsDto {
+        val userStore = userTasks[userId] ?: return TaskStatsDto(
+            totalTasks = 0L, openTasks = 0L, doneTasks = 0L, discardedTasks = 0L, recentTasks = emptyList(),
+        )
+        val tasks = userStore.tasks.values
+        val sortedByCreation = userStore.tasks.entries
+            .sortedByDescending { it.key }
+            .sortedByDescending { it.value.createdAt }
+            .take(10)
+            .map { it.value.toDto(it.key) }
+        return TaskStatsDto(
+            totalTasks = tasks.size.toLong(),
+            openTasks = tasks.count { it.status == TaskStatus.OPEN }.toLong(),
+            doneTasks = tasks.count { it.status == TaskStatus.DONE }.toLong(),
+            discardedTasks = tasks.count { it.status == TaskStatus.DISCARDED }.toLong(),
+            recentTasks = sortedByCreation,
+        )
     }
 
     private fun InMemoryTask.toDto(id: Long) = TaskDto(

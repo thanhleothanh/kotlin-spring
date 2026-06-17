@@ -1,0 +1,4 @@
+### @name getTaskStats
+GET {{baseUrl}}/api/tasks/stats
+Accept: application/json
+Authorization: Bearer {{token}}

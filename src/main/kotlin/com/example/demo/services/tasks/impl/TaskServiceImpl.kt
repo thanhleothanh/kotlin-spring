@@ -2,14 +2,14 @@ package com.example.demo.services.tasks.impl
 
 import com.example.demo.entities.TaskEntity
 import com.example.demo.mappers.TaskMapper
-import com.example.demo.models.tasks.PatchTaskDto
-import com.example.demo.models.tasks.PostTaskDto
-import com.example.demo.models.tasks.TaskDto
-import com.example.demo.models.tasks.TaskStatus
-import com.example.demo.repositories.users.UserRepository
+import com.example.demo.models.tasks.*
 import com.example.demo.repositories.tasks.TaskRepository
+import com.example.demo.repositories.users.UserRepository
 import com.example.demo.services.tasks.TaskService
 import jakarta.persistence.EntityNotFoundException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -41,6 +41,33 @@ class TaskServiceImpl(
     override fun deleteTask(userId: Long, id: Long) {
         val entity = getTaskByIdAndUser(id, userId)
         taskRepository.delete(entity)
+    }
+
+    override suspend fun getTaskStats(userId: Long): TaskStatsDto = coroutineScope {
+        val totalDeferred = async(Dispatchers.IO) {
+            taskRepository.countByUserId(userId)
+        }
+        val openDeferred = async(Dispatchers.IO) {
+            taskRepository.countByUserIdAndStatus(userId, TaskStatus.OPEN)
+        }
+        val doneDeferred = async(Dispatchers.IO) {
+            taskRepository.countByUserIdAndStatus(userId, TaskStatus.DONE)
+        }
+        val discardedDeferred = async(Dispatchers.IO) {
+            taskRepository.countByUserIdAndStatus(userId, TaskStatus.DISCARDED)
+        }
+        val recentDeferred = async(Dispatchers.IO) {
+            taskRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId)
+                .map { TaskMapper.toDto(it) }
+        }
+
+        TaskStatsDto(
+            totalTasks = totalDeferred.await(),
+            openTasks = openDeferred.await(),
+            doneTasks = doneDeferred.await(),
+            discardedTasks = discardedDeferred.await(),
+            recentTasks = recentDeferred.await(),
+        )
     }
 
     private fun applyPatch(entity: TaskEntity, request: PatchTaskDto) {

@@ -1,6 +1,9 @@
 package com.example.demo.controllers
 
 import com.example.demo.configurations.ControllerIntegrationTest
+import com.example.demo.factories.tasks.TaskTestFactory.postTaskDto1
+import com.example.demo.factories.tasks.TaskTestFactory.postTaskDto2
+import com.example.demo.models.tasks.PostTaskDto
 import com.example.demo.models.tasks.TaskStatus
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -89,18 +92,8 @@ class TaskControllerTest {
 
     @Test
     fun `getTasks returns all posted tasks`() {
-        val task1 = mapOf("title" to "Task One", "description" to "First task")
-        val task2 = mapOf("title" to "Task Two", "description" to "Second task")
-
-        authenticated()
-            .contentType(ContentType.JSON)
-            .body(task1)
-            .post("/api/tasks")
-
-        authenticated()
-            .contentType(ContentType.JSON)
-            .body(task2)
-            .post("/api/tasks")
+        extractCreatedTaskId(postTaskDto1)
+        extractCreatedTaskId(postTaskDto2)
 
         authenticated()
             .`when`()
@@ -113,7 +106,7 @@ class TaskControllerTest {
 
     @Test
     fun `patchTask updates title`() {
-        val id = extractCreatedTaskId()
+        val id = extractCreatedTaskId(postTaskDto1)
 
         authenticated()
             .contentType(ContentType.JSON)
@@ -123,12 +116,12 @@ class TaskControllerTest {
             .then()
             .statusCode(200)
             .body("title", equalTo("Updated Title"))
-            .body("description", equalTo("First task"))
+            .body("description", equalTo(postTaskDto1.description))
     }
 
     @Test
     fun `patchTask status transition to DONE sets completedAt`() {
-        val id = extractCreatedTaskId()
+        val id = extractCreatedTaskId(postTaskDto1)
 
         authenticated()
             .contentType(ContentType.JSON)
@@ -143,7 +136,7 @@ class TaskControllerTest {
 
     @Test
     fun `patchTask status transition away from DONE clears completedAt`() {
-        val id = extractCreatedTaskId()
+        val id = extractCreatedTaskId(postTaskDto1)
 
         authenticated()
             .contentType(ContentType.JSON)
@@ -174,7 +167,7 @@ class TaskControllerTest {
 
     @Test
     fun `deleteTask removes existing task`() {
-        val id = extractCreatedTaskId()
+        val id = extractCreatedTaskId(postTaskDto1)
 
         authenticated()
             .`when`()
@@ -199,6 +192,42 @@ class TaskControllerTest {
     }
 
     @Test
+    fun `getTaskStats returns counts and recent tasks`() {
+        val task1Id = extractCreatedTaskId(postTaskDto1)
+        val task2Id = extractCreatedTaskId(postTaskDto2)
+
+        authenticated()
+            .contentType(ContentType.JSON)
+            .body(mapOf("status" to TaskStatus.DONE))
+            .patch("/api/tasks/{id}", task1Id)
+
+        authenticated()
+            .`when`()
+            .get("/api/tasks/stats")
+            .then()
+            .statusCode(200)
+            .body("totalTasks", equalTo(2))
+            .body("openTasks", equalTo(1))
+            .body("doneTasks", equalTo(1))
+            .body("discardedTasks", equalTo(0))
+            .body("recentTasks.size()", equalTo(2))
+    }
+
+    @Test
+    fun `getTaskStats returns zeros when no tasks exist`() {
+        authenticated()
+            .`when`()
+            .get("/api/tasks/stats")
+            .then()
+            .statusCode(200)
+            .body("totalTasks", equalTo(0))
+            .body("openTasks", equalTo(0))
+            .body("doneTasks", equalTo(0))
+            .body("discardedTasks", equalTo(0))
+            .body("recentTasks.size()", equalTo(0))
+    }
+
+    @Test
     fun `unauthenticated request returns 401`() {
         RestAssured.given()
             .`when`()
@@ -207,10 +236,10 @@ class TaskControllerTest {
             .statusCode(401)
     }
 
-    private fun extractCreatedTaskId(): Long {
+    private fun extractCreatedTaskId(postTaskDto: PostTaskDto): Long {
         return authenticated()
             .contentType(ContentType.JSON)
-            .body(mapOf("title" to "Task One", "description" to "First task"))
+            .body(postTaskDto)
             .post("/api/tasks")
             .then()
             .statusCode(201)

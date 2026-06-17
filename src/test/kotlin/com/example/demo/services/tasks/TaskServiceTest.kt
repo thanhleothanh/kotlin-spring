@@ -10,6 +10,7 @@ import com.example.demo.models.auth.RegisterRequest
 import com.example.demo.models.tasks.TaskStatus
 import com.example.demo.services.auth.AuthService
 import jakarta.persistence.EntityNotFoundException
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -123,5 +124,45 @@ abstract class TaskServiceTest {
         }
 
         assertEquals("Task not found with id 99999", ex.message)
+    }
+
+    @Test
+    fun `getTaskStats returns zero counts when user has no tasks`() = runBlocking {
+        val stats = taskService.getTaskStats(testUserId)
+
+        assertEquals(0L, stats.totalTasks)
+        assertEquals(0L, stats.openTasks)
+        assertEquals(0L, stats.doneTasks)
+        assertEquals(0L, stats.discardedTasks)
+        assertTrue(stats.recentTasks.isEmpty())
+    }
+
+    @Test
+    fun `getTaskStats recentTasks are ordered by createdAt descending`() = runBlocking {
+        val task1 = taskService.postTask(testUserId, postTaskDto1)
+        val task2 = taskService.postTask(testUserId, postTaskDto2)
+        val task3 = taskService.postTask(testUserId, postTaskDto1)
+
+        val stats = taskService.getTaskStats(testUserId)
+
+        assertEquals(3, stats.recentTasks.size)
+        assertEquals(task3.id, stats.recentTasks[0].id)
+        assertEquals(task2.id, stats.recentTasks[1].id)
+        assertEquals(task1.id, stats.recentTasks[2].id)
+    }
+
+    @Test
+    fun `getTaskStats returns correct counts after posting tasks with various statuses`() = runBlocking {
+        val task1 = taskService.postTask(testUserId, postTaskDto1)
+        val task2 = taskService.postTask(testUserId, postTaskDto2)
+        taskService.patchTask(testUserId, task1.id, patchTaskStatusToDone)
+        taskService.patchTask(testUserId, task2.id, patchTaskStatusToOpen)
+
+        val stats = taskService.getTaskStats(testUserId)
+
+        assertEquals(2L, stats.totalTasks)
+        assertEquals(1L, stats.openTasks)
+        assertEquals(1L, stats.doneTasks)
+        assertEquals(0L, stats.discardedTasks)
     }
 }

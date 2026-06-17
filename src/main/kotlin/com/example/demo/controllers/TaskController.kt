@@ -3,9 +3,11 @@ package com.example.demo.controllers
 import com.example.demo.models.tasks.PatchTaskDto
 import com.example.demo.models.tasks.PostTaskDto
 import com.example.demo.models.tasks.TaskDto
+import com.example.demo.models.tasks.TaskStatsDto
 import com.example.demo.security.UserPrincipal
 import com.example.demo.services.tasks.TaskService
 import jakarta.validation.Valid
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -20,6 +22,12 @@ class TaskController(
     @ResponseStatus(HttpStatus.OK)
     fun getTasks(@AuthenticationPrincipal principal: UserPrincipal): List<TaskDto> {
         return taskService.getTasks(principal.id)
+    }
+
+    @GetMapping("/stats")
+    @ResponseStatus(HttpStatus.OK)
+    fun getTaskStats(@AuthenticationPrincipal principal: UserPrincipal): TaskStatsDto {
+        return runBlocking { taskService.getTaskStats(principal.id) }
     }
 
     @PostMapping
