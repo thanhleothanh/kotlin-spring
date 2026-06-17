@@ -6,7 +6,7 @@ import com.example.demo.models.tasks.PatchTaskDto
 import com.example.demo.models.tasks.PostTaskDto
 import com.example.demo.models.tasks.TaskDto
 import com.example.demo.models.tasks.TaskStatus
-import com.example.demo.repositories.UserRepository
+import com.example.demo.repositories.users.UserRepository
 import com.example.demo.repositories.tasks.TaskRepository
 import com.example.demo.services.tasks.TaskService
 import jakarta.persistence.EntityNotFoundException

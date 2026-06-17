@@ -4,7 +4,7 @@ import com.example.demo.entities.UserEntity
 import com.example.demo.models.auth.AuthResponse
 import com.example.demo.models.auth.LoginRequest
 import com.example.demo.models.auth.RegisterRequest
-import com.example.demo.repositories.UserRepository
+import com.example.demo.repositories.users.UserRepository
 import com.example.demo.security.JwtTokenProvider
 import com.example.demo.services.auth.AuthService
 import org.springframework.security.crypto.password.PasswordEncoder

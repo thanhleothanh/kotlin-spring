@@ -1,7 +1,7 @@
 package com.example.demo.services.tasks.impl
 
 import com.example.demo.configurations.DatabaseIntegrationTest
-import com.example.demo.repositories.UserRepository
+import com.example.demo.repositories.users.UserRepository
 import com.example.demo.repositories.tasks.TaskRepository
 import com.example.demo.security.JwtTokenProvider
 import com.example.demo.services.auth.AuthService
