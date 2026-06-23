@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   ci-cd-pipeline:
     uses: thanhleothanh/github-workflows/.github/workflows/gradle-workflow.yml@main
