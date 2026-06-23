@@ -1,0 +1,18 @@
+name: CI pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci-cd-pipeline:
+    uses: thanhleothanh/github-workflows/.github/workflows/gradle-workflow.yml@main
+    with:
+      java-version: '17'
+      infra-startup-script: .github/scripts/startup.sh
+      infra-teardown-script: .github/scripts/teardown.sh
