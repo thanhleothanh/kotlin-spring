@@ -11,6 +11,7 @@ import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.web.server.LocalServerPort
 
 @ControllerIntegrationTest
@@ -23,11 +24,15 @@ class TaskControllerTest {
     @LocalServerPort
     private var port: Int = 0
 
+    @Value("\${server.servlet.context-path}")
+    private lateinit var contextPath: String
+
     private lateinit var authToken: String
 
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
+        RestAssured.basePath = contextPath
         authToken = registerAndLogin()
     }
 
