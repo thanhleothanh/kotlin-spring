@@ -7,6 +7,7 @@ import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.notNullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.web.server.LocalServerPort
 
 
@@ -20,9 +21,13 @@ class AuthControllerTest {
     @LocalServerPort
     private var port: Int = 0
 
+    @Value("\${server.servlet.context-path}")
+    private lateinit var contextPath: String
+
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
+        RestAssured.basePath = contextPath
     }
 
     @Test
