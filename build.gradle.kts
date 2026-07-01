@@ -36,6 +36,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("io.rest-assured:rest-assured:5.5.0")
+	implementation("com.azure.spring:spring-cloud-azure-starter-servicebus:5.19.0")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
