@@ -1,37 +1,21 @@
 package com.example.demo.services.tasks.impl
 
 import com.example.demo.configurations.DatabaseIntegrationTest
-import com.example.demo.repositories.users.UserRepository
-import com.example.demo.repositories.tasks.TaskRepository
-import com.example.demo.security.JwtTokenProvider
 import com.example.demo.services.auth.AuthService
-import com.example.demo.services.auth.impl.AuthServiceImpl
 import com.example.demo.services.tasks.TaskService
 import com.example.demo.services.tasks.TaskServiceTest
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.crypto.password.PasswordEncoder
 
 @DatabaseIntegrationTest
 class TaskServiceImplTest : TaskServiceTest() {
 
     @Autowired
-    private lateinit var taskRepository: TaskRepository
+    private lateinit var injectedTaskService: TaskService
 
     @Autowired
-    private lateinit var userRepository: UserRepository
+    private lateinit var injectedAuthService: AuthService
 
-    @Autowired
-    private lateinit var passwordEncoder: PasswordEncoder
+    override fun createTaskService(): TaskService = injectedTaskService
 
-    @Autowired
-    private lateinit var jwtTokenProvider: JwtTokenProvider
-
-    override fun createTaskService(): TaskService {
-        return TaskServiceImpl(taskRepository, userRepository)
-    }
-
-    override fun createAuthService(): AuthService {
-        return AuthServiceImpl(userRepository, passwordEncoder, jwtTokenProvider)
-    }
-
+    override fun createAuthService(): AuthService = injectedAuthService
 }

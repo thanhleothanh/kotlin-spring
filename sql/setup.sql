@@ -18,3 +18,14 @@ CREATE TABLE tasks (
 );
 
 CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+
+CREATE TABLE outbox (
+    id             UUID PRIMARY KEY,
+    event_type     VARCHAR(100) NOT NULL,
+    correlation_id VARCHAR(100) NOT NULL,
+    payload        JSONB NOT NULL,
+    created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+    published_at   TIMESTAMP
+);
+
+CREATE INDEX idx_outbox_published_at ON outbox(published_at);
