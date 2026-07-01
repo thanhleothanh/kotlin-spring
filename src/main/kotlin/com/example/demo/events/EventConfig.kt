@@ -33,7 +33,7 @@ class EventConfig {
     @Bean
     @ConditionalOnProperty(name = ["events.mode"], havingValue = "asb")
     fun serviceBusClientBuilder(
-        @Value("\${ASB_CONNECTION_STRING:}") connectionString: String,
+        @Value("\${app.servicebus.connection-string:}") connectionString: String,
     ): ServiceBusClientBuilder {
         require(connectionString.isNotBlank()) { "ASB_CONNECTION_STRING env var must be set when events.mode=asb" }
         return ServiceBusClientBuilder()
